@@ -8,6 +8,7 @@ from src.video_repost.router import router as video_repost
 from src.routers import router as page_router
 from fastapi.staticfiles import StaticFiles
 from src.product.router import router as product_router
+from src.users.router import router as user_router
 app = FastAPI()
 
 app.include_router(video_router)
@@ -15,6 +16,7 @@ app.include_router(comment_router)
 app.include_router(video_repost)
 app.include_router(page_router)
 app.include_router(product_router)
+app.include_router(user_router)
 app.include_router(
     fastapi_users.get_auth_router(auth_backend),
     prefix="/auth/jwt",

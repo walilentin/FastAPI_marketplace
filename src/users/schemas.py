@@ -22,6 +22,7 @@ class UserUpdate(schemas.BaseUser[int]):
     is_active: bool = True
     is_superuser: bool = False
     is_verified: bool = False
+    role_id: int
 
     class Config:
         from_attributes = True
