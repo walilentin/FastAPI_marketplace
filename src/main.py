@@ -9,8 +9,15 @@ from src.routers import router as page_router
 from fastapi.staticfiles import StaticFiles
 from src.product.router import router as product_router
 from src.users.router import router as user_router
+<<<<<<< HEAD
 app = FastAPI()
 
+=======
+from src.basket.router import router as basket_router
+app = FastAPI()
+
+app.include_router(basket_router)
+>>>>>>> 12d5085 (add basket)
 app.include_router(video_router)
 app.include_router(comment_router)
 app.include_router(video_repost)
