@@ -28,10 +28,9 @@ class Product(Base):
     seller = relationship("User", foreign_keys=[seller_id], lazy="joined")
     orders = relationship("Order", back_populates="product", lazy="joined")
     category = relationship("Category", back_populates="products")
-<<<<<<< HEAD
-=======
+
+
     baskets = relationship("Basket", back_populates="product")
->>>>>>> 12d5085 (add basket)
 
 class Review(Base):
     __tablename__ = 'review'
