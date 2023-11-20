@@ -10,7 +10,7 @@ class ProductCreate(BaseModel):
 
     @validator("amount")
     def check_amount(cls, value):
-        if value <= 1:
+        if value < 1:
             raise ValueError("Amount must be greater than 1")
         return value
 
