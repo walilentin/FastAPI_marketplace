@@ -1,5 +1,4 @@
 .env
 venv
 .idea
-migrations
-
+.env-non-dev
