@@ -94,10 +94,11 @@ async def buy_product(
         elif product.amount < 1:
             raise HTTPException(status_code=400, detail="Product is out of stock")
         else:
-            if current_user.balance >= product.price:  # перевірка чи є у користувача достатня кількість валюти
+            if current_user.balance >= product.price:
                 order = Order(buyer_id=current_user.id, seller_id=product.seller_id, item_id=product.id)
                 session.add(order)
-                product.amount -= 1  # зменшує кількість товару після вдалої покупки на 1
+                product.amount -= 1
+                current_user.balance -= product.price
                 await session.commit()
                 # return {"message": "Product purchased successfully"}
                 return {"You buy": f"{product.description}"}
