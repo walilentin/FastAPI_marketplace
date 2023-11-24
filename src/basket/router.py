@@ -10,7 +10,7 @@ from src.users.manager import get_user_manager
 
 router = APIRouter(prefix="/basket",tags=["Basket"])
 
-@router.post("/add_to_basket/{product_id}")
+@router.post("/add-to-basket/{product_id}")
 async def create_product(
         product_id: int,
         current_user: get_user_manager = Depends(fastapi_users.current_user(active=True, optional=True)),

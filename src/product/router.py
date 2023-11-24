@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.database import get_async_session
 from src.product.models import Product, Order, Review, Category
 from src.product.schemas import ProductCreate
-from src.users.base_config import fastapi_users
+from src.users.base_config import fastapi_users, current_superuser
 from src.users.manager import get_user_manager
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -18,45 +18,42 @@ async def create_product(
         session: AsyncSession = Depends(get_async_session),
 ):
     if current_user:
-        stmt = Product(seller_id=current_user.id, **product.dict())
-        session.add(stmt)
-        await session.commit()
-        return stmt
+        category = await session.execute(select(Product).filter(Category.id == product.category_id))
+        category = category.scalar()
+        if category:
+            stmt = Product(seller_id=current_user.id, **product.dict())
+            session.add(stmt)
+            await session.commit()
+            return stmt
+        else:
+            raise HTTPException(status_code=404, detail="Category not found")
     else:
         return {"message": "you not auth"}
 
-@router.post("/add_category")
+@router.post("/add-category", dependencies=[Depends(current_superuser)])
 async def add_category(
         name_category: str,
         session: AsyncSession = Depends(get_async_session),
-        current_user: get_user_manager = Depends(fastapi_users.current_user(active=True, optional=True)),
 ):
-    if current_user.role_id == 2:
-        stmt = Category(name_category=name_category)
+    stmt = Category(name_category=name_category)
+    session.add(stmt)
+    await session.commit()
+    return stmt
 
-        session.add(stmt)
-        await session.commit()
-        return stmt
-    else:
-        return {"message":"you not admin"}
 
-@router.delete("/delete_category/{category_id}")
+@router.delete("/delete-category/{category_id}", dependencies=[Depends(current_superuser)])
 async def delete_category(
         category_id: int,
         session: AsyncSession = Depends(get_async_session),
-        current_user: get_user_manager = Depends(fastapi_users.current_user(active=True, optional=True)),
 ):
-    if current_user:
-        if current_user.role_id == 2:
-            await session.execute(delete(Category).where(Category.id == category_id))
-            await session.commit()
-            return {"category": "was deleted"}
-        else:
-            return {"message": "you not admin"}
-    else:
-        return {"message": "you not auth"}
+        category = await session.execute(delete(Category).where(Category.id == category_id))
+        category = category.scalar()
+        if category is None:
+            raise HTTPException(status_code=404, detail="Category not found")
+        await session.commit()
+        return {"category": "was deleted"}
 
-@router.delete("/delete_product/{product_id}")
+@router.delete("/delete-product/{product_id}")
 async def delete_product(
         product_id: int,
         current_user: get_user_manager = Depends(fastapi_users.current_user(active=True, optional=True)),
@@ -71,7 +68,6 @@ async def delete_product(
         if current_user.id != product.seller_id:
             raise HTTPException(status_code=403, detail="Permission denied")
 
-        # Видаляємо коментар з бази даних
         await session.execute(delete(Product).where(Product.id == product_id))
         await session.commit()
 
@@ -79,7 +75,7 @@ async def delete_product(
     else:
         return {"message": "you not auth"}
 
-@router.post("/buy_product/{product_id}")
+@router.post("/buy-product/{product_id}")
 async def buy_product(
         product_id: int,
         current_user: get_user_manager = Depends(fastapi_users.current_user(active=True, optional=True)),
@@ -107,7 +103,7 @@ async def buy_product(
     else:
         return {"message": "you not auth"}
 
-@router.post("/add_review/{product_id}")
+@router.post("/add-review/{product_id}")
 async def add_review(
         product_id: int,
         review_text: str,
@@ -134,7 +130,7 @@ async def add_review(
     return {"message": "Review added successfully"}
 
 
-@router.get("/get_reviews/{product_id}")
+@router.get("/get-reviews/{product_id}")
 async def get_reviews(
         product_id: int,
         reviews_id: int,
