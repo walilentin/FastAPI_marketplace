@@ -26,7 +26,7 @@ class User(SQLAlchemyBaseUserTable[int], Base):
     __tablename__ = 'user'
 
     id = Column(Integer, primary_key=True)
-    email = Column(String, nullable=False)
+    email = Column(String, nullable=False, unique=True)
     username = Column(String, nullable=True)
     role_id = Column(Integer, ForeignKey("role.id"))
     registered_at = Column(TIMESTAMP, default=datetime.utcnow)
@@ -41,4 +41,4 @@ class User(SQLAlchemyBaseUserTable[int], Base):
     orders = relationship("Order", foreign_keys="[Order.buyer_id]", back_populates="buyer")
     comments = relationship("Comment", back_populates="user")
     videos = relationship("Video", back_populates="user")
-    role = relationship("Role", back_populates="users")
+    role = relationship("Role", back_populates="users", lazy="joined")

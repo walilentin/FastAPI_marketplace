@@ -1,8 +1,10 @@
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 from fastapi_users import FastAPIUsers
 from fastapi_users.authentication import CookieTransport, JWTStrategy, AuthenticationBackend
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config import SECRET_AUTH
+from src.database import get_async_session
 from src.users.manager import get_user_manager
 from src.users.manager import User
 
@@ -19,10 +21,27 @@ auth_backend = AuthenticationBackend(
     get_strategy=get_jwt_strategy,
 )
 
-
 fastapi_users = FastAPIUsers[User, int](
     get_user_manager,
     [auth_backend],
 )
 current_user = fastapi_users.current_user()
 current_superuser = fastapi_users.current_user(active=True, superuser=True)
+
+
+async def current_user_admin(user: User = Depends(current_user)):
+    if user.role.name != 'ADMIN':
+        raise HTTPException(status_code=401, detail="User is not a ADMIN")
+    return user
+
+
+async def current_user_user(user: User = Depends(current_user)):
+    if user.role.name != 'USER':
+        raise HTTPException(status_code=401, detail="User is not a USER")
+    return user
+
+
+async def current_user_guest(user: User = Depends(current_user)):
+    if user.role.name != 'GUEST':
+        raise HTTPException(status_code=401, detail="User is not a GUEST")
+    return user

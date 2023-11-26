@@ -16,7 +16,6 @@ class UserRead(schemas.BaseUser):
 
 
 class UserUpdate(schemas.BaseUser[int]):
-    id: int
     email: str
     username: str
     is_active: bool = True

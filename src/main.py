@@ -5,20 +5,17 @@ from src.users.schemas import UserRead, UserCreate
 from src.video.router import video as video_router
 from src.comment.router import comment as comment_router
 from src.video_repost.router import router as video_repost
-from src.routers import router as page_router
 from src.product.router import router as product_router
-from src.users.router import router as user_router
 from src.basket.router import router as basket_router
-
+from src.admin.router import router as admin
 app = FastAPI()
 
 app.include_router(basket_router)
 app.include_router(video_router)
 app.include_router(comment_router)
 app.include_router(video_repost)
-app.include_router(page_router)
 app.include_router(product_router)
-app.include_router(user_router)
+app.include_router(admin)
 app.include_router(
     fastapi_users.get_auth_router(auth_backend),
     prefix="/auth/jwt",
@@ -40,3 +37,4 @@ app.include_router(
     prefix="/auth/google",
     tags=["auth"],
 )
+
