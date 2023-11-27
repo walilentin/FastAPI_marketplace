@@ -117,7 +117,6 @@ async def add_review(
 async def get_reviews(
         product_id: int,
         session: AsyncSession = Depends(get_async_session)):
-    # Get all reviews for the specified product
     reviews = await session.execute(select(Review).where(Review.product_id == product_id))
 
     if not reviews:
