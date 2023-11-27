@@ -111,14 +111,18 @@ async def add_review(
     await session.commit()
 
     return {"message": "Review added successfully"}
+
+
 @router.get("/get-reviews/{product_id}", dependencies=[Depends(current_user_has_permission("get_reviews"))])
 async def get_reviews(
         product_id: int,
-        reviews_id: int,
         session: AsyncSession = Depends(get_async_session)):
-    review = await session.execute(select(Review).where(Review.product_id == product_id, Review.id == reviews_id))
-    review = review.scalar()
-    if review is None:
-        raise HTTPException(status_code=404, detail="Comment not found")
+    # Get all reviews for the specified product
+    reviews = await session.execute(select(Review).where(Review.product_id == product_id))
 
-    return {"review": review.text, "user": review.user_id}
+    if not reviews:
+        raise HTTPException(status_code=404, detail="No reviews found for the specified product")
+
+    reviews_list = [{"review": review.text, "user": review.user_id} for review in reviews]
+
+    return {"reviews": reviews_list}
