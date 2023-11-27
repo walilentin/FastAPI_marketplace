@@ -2,7 +2,8 @@ from fastapi import FastAPI, Request, Depends
 from fastapi.templating import Jinja2Templates
 
 from src.config import google_oauth_client, SECRET_AUTH
-from src.users.base_config import auth_backend, fastapi_users, current_user_admin
+from src.users.base_config import auth_backend, fastapi_users, current_user_has_permission
+from src.users.models import User
 from src.users.schemas import UserRead, UserCreate
 from src.video.router import video as video_router
 from src.comment.router import comment as comment_router
@@ -10,7 +11,7 @@ from src.video_repost.router import router as video_repost
 from src.product.router import router as product_router
 from src.basket.router import router as basket_router
 from src.admin.router import router as admin
-from src.admin.router import templates
+
 
 app = FastAPI()
 

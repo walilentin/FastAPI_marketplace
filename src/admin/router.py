@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.templating import Jinja2Templates
 
 from src.database import get_async_session
+from src.product.models import Category
 from src.users.base_config import current_user_admin
 from src.users.models import User
 
@@ -12,6 +13,7 @@ from src.users.schemas import UserUpdate, UserCreate
 router = APIRouter(prefix="/admin", tags=["Admin-Panel"])
 
 templates = Jinja2Templates(directory="/home/valik/Стільниця/FastAPI-like-TikTok/src/templates")
+
 
 @router.patch("/update-user/{user_id}", dependencies=[Depends(current_user_admin)])
 async def update_user(user_id: int, user_update: UserUpdate, session: AsyncSession = Depends(get_async_session)):
@@ -58,3 +60,27 @@ async def delete_user(user_id: int, session: AsyncSession = Depends(get_async_se
 @router.get("/", dependencies=[Depends(current_user_admin)])
 async def home(request: Request):
     return templates.TemplateResponse("admins.html", {"request": request})
+
+
+@router.post("/add-category", dependencies=[Depends(current_user_admin)])
+async def add_category(
+        name_category: str,
+        session: AsyncSession = Depends(get_async_session),
+):
+    stmt = Category(name_category=name_category)
+    session.add(stmt)
+    await session.commit()
+    return stmt
+
+
+@router.delete("/delete-category/{category_id}", dependencies=[Depends(current_user_admin)])
+async def delete_category(
+        category_id: int,
+        session: AsyncSession = Depends(get_async_session),
+):
+    category = await session.execute(delete(Category).where(Category.id == category_id))
+    category = category.scalar()
+    if category is None:
+        raise HTTPException(status_code=404, detail="Category not found")
+    await session.commit()
+    return {"category": "was deleted"}

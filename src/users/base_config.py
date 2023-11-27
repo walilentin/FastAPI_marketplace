@@ -2,7 +2,7 @@ from fastapi import Depends, HTTPException
 from fastapi_users import FastAPIUsers
 from fastapi_users.authentication import CookieTransport, JWTStrategy, AuthenticationBackend
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from fastapi import Depends, HTTPException
 from src.config import SECRET_AUTH
 from src.database import get_async_session
 from src.users.manager import get_user_manager
@@ -35,9 +35,9 @@ async def current_user_admin(user: User = Depends(current_user)):
     return user
 
 
-async def current_user_user(user: User = Depends(current_user)):
-    if user.role.name != 'USER':
-        raise HTTPException(status_code=401, detail="User is not a USER")
+async def current_user_seller(user: User = Depends(current_user)):
+    if user.role.name != 'SELLER':
+        raise HTTPException(status_code=401, detail="User is not a SELLER")
     return user
 
 
@@ -45,3 +45,12 @@ async def current_user_guest(user: User = Depends(current_user)):
     if user.role.name != 'GUEST':
         raise HTTPException(status_code=401, detail="User is not a GUEST")
     return user
+
+async def current_user_buyer(user: User = Depends(current_user)):
+    if user.role.name != 'BUYER':
+        raise HTTPException(status_code=401, detail="User is not a BUYER")
+    return user
+
+
+
+

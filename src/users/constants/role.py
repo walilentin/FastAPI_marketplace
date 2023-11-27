@@ -1,22 +1,22 @@
 class Role:
-    """
-    Constants for the various roles scoped in the application ecosystem
-    """
-
     GUEST = {
         "name": "GUEST",
-        "description": "A Guest Account",
-    }
-    USER = {
-        "name": "USER",
-        "description": "Account owner",
+        "description": "Guest",
+        "permissions": ["get_reviews", "view_site"]
     }
 
+    SELLER = {
+        "name": "SELLER",
+        "description": "Seller",
+        "permissions": ["create_product", "delete_product"]
+    }
+    BUYER = {
+        "name": "BUYER",
+        "description": "Buyer",
+        "permissions": ["buy_product", "add_review", "get_reviews"]
+    }
     ADMIN = {
         "name": "ADMIN",
-        "description": "Admin of Application Ecosystem",
-    }
-    SUPER_ADMIN = {
-        "name": "SUPER_ADMIN",
-        "description": "Super Administrator of Application Ecosystem",
+        "description": "Admin",
+        "permissions": ["manage_users", "manage_roles", "manage_products"]
     }
