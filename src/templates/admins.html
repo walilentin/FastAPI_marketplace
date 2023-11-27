@@ -53,7 +53,14 @@
 <body>
     <div class="container mt-5">
     <h1>User Management</h1>
-
+     <form id="changeRoleForm">
+            <label for="roleSelect">Select a Role:</label>
+            <select id="roleSelect" name="role">
+                <option value="SELLER">Seller</option>
+                <option value="BUYER">Buyer</option>
+            </select>
+            <button type="button" onclick="changeUserRole()">Change Role</button>
+        </form>
     <!-- Update User Form -->
     <form id="updateUserForm">
         <label for="id">User ID:</label>
@@ -222,7 +229,29 @@
                 console.error(error);
             }
         }
+async function changeUserRole() {
+    const selectedRole = document.getElementById('roleSelect').value;
 
+    try {
+        const response = await fetch(`/admin/change-role?new_role=${selectedRole}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            const errorMessage = await response.json();
+            alert(`Error: ${errorMessage.detail}`);
+        } else {
+            const result = await response.json();
+            alert(result.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while changing the role.');
+    }
+}
     </script>
 
 </body>

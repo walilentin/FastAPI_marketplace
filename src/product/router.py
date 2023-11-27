@@ -1,12 +1,16 @@
 from http.client import HTTPException
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.admin.router import templates
 from src.database import get_async_session
 from src.product.models import Product, Order, Review, Category
 from src.product.schemas import ProductCreate
 from src.users.base_config import fastapi_users, current_user_has_permission
 from src.users.manager import get_user_manager
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+
+from src.users.models import User, Role
 
 router = APIRouter(prefix="/product", tags=["Product"])
 
@@ -124,3 +128,24 @@ async def get_reviews(
 
     reviews_list = [{"review": review.text, "user": review.user_id} for review in reviews]
     return {"reviews": reviews_list}
+
+
+@router.post("/change-role", dependencies=[Depends(current_user_has_permission("change_role"))])
+async def change_user_role(
+    new_role: str,
+    current_user: User = Depends(fastapi_users.current_user(active=True, optional=True)),
+    session: AsyncSession = Depends(get_async_session),
+):
+    valid_roles = ["GUEST", "SELLER", "BUYER"]
+    if new_role not in valid_roles:
+        raise HTTPException(status_code=400, detail="Invalid role")
+
+    role = await session.execute(select(Role).where(Role.name == new_role))
+    role = role.scalar()
+
+    if role:
+        await session.execute(update(User).where(User.id == current_user.id).values(role_id=role.id))
+        await session.commit()
+        return {"message": f"Role changed to {new_role}"}
+    else:
+        raise HTTPException(status_code=404, detail="Role not found")

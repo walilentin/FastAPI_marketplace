@@ -5,8 +5,8 @@ from starlette.templating import Jinja2Templates
 
 from src.database import get_async_session
 from src.product.models import Category
-from src.users.base_config import current_user_has_permission
-from src.users.models import User
+from src.users.base_config import current_user_has_permission, fastapi_users
+from src.users.models import User, Role
 
 from src.users.schemas import UserUpdate, UserCreate
 
@@ -56,12 +56,6 @@ async def delete_user(user_id: int, session: AsyncSession = Depends(get_async_se
 
     return {"message": f"User with ID {user_id} deleted successfully"}
 
-
-@router.get("/", dependencies=[Depends(current_user_has_permission("manage_users"))])
-async def home(request: Request):
-    return templates.TemplateResponse("admins.html", {"request": request})
-
-
 @router.post("/add-category", dependencies=[Depends(current_user_has_permission("manage_products"))])
 async def add_category(
         name_category: str,
@@ -84,3 +78,23 @@ async def delete_category(
         raise HTTPException(status_code=404, detail="Category not found")
     await session.commit()
     return {"category": "was deleted"}
+
+@router.post("/change-role", dependencies=[Depends(current_user_has_permission("change_role"))])
+async def change_user_role(
+    new_role: str,
+    current_user: User = Depends(fastapi_users.current_user(active=True, optional=True)),
+    session: AsyncSession = Depends(get_async_session),
+):
+    valid_roles = ["GUEST", "SELLER", "BUYER"]
+    if new_role not in valid_roles:
+        raise HTTPException(status_code=400, detail="Invalid role")
+
+    role = await session.execute(select(Role).where(Role.name == new_role))
+    role = role.scalar()
+
+    if role:
+        await session.execute(update(User).where(User.id == current_user.id).values(role_id=role.id))
+        await session.commit()
+        return {"message": f"Role changed to {new_role}"}
+    else:
+        raise HTTPException(status_code=404, detail="Role not found")

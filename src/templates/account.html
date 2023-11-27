@@ -1,0 +1,76 @@
+<!-- templates/account.html -->
+{% extends "base.html" %}
+
+{% block title %}My Account - {{ super() }}{% endblock %}
+
+{% block content %}
+    <h2>My Account</h2>
+    <div class="row">
+        <div class="col-md-6">
+            <h4>User Information</h4>
+            <p>Name: {{ user.username }}</p>
+            <p>Email: {{ user.email }}</p>
+        </div>
+
+        <div>
+            <h4>Settings</h4>
+            <p>Change password, notification preferences, etc.</p>
+            <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+                <form class="form-inline">
+                    <label class="mr-2" for="roleSelect">Select a Role:</label>
+                    <select class="form-control mr-2" id="roleSelect" name="role">
+                        <option value="SELLER">Seller</option>
+                        <option value="BUYER">Buyer</option>
+                    </select>
+                    <button type="button" class="btn btn-primary" onclick="changeUserRole()">Change Role</button>
+                </form>
+            </li>
+            </ul>
+        </div>
+        <div class="col-md-6">
+            <h4>Order History</h4>
+            <ul>
+                {% for order in user.orders %}
+                    <li>Order #{{ order.id }} - {{ order.product.name }} </li>
+                {% endfor %}
+            </ul>
+
+            <h4>Settings</h4>
+            <p>Change password, notification preferences, etc.</p>
+        </div>
+
+    </div>
+
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('Page loaded.');
+        });
+
+        async function changeUserRole() {
+            const selectedRole = document.getElementById('roleSelect').value;
+
+            try {
+                const response = await fetch(`/admin/change-role?new_role=${selectedRole}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (!response.ok) {
+                    const errorMessage = await response.json();
+                    alert(`Error: ${errorMessage.detail}`);
+                } else {
+                    const result = await response.json();
+                    alert(result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while changing the role.');
+            }
+        }
+    </script>
+{% endblock %}

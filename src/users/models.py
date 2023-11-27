@@ -45,7 +45,7 @@ class User(SQLAlchemyBaseUserTable[int], Base):
     oauth_accounts = relationship("OAuthAccount", lazy="joined")
     balance = Column(Float, default=0.0)
 
-    orders = relationship("Order", foreign_keys="[Order.buyer_id]", back_populates="buyer")
+    orders = relationship("Order", foreign_keys="[Order.buyer_id]", back_populates="buyer", lazy="joined")
     comments = relationship("Comment", back_populates="user")
     videos = relationship("Video", back_populates="user")
 

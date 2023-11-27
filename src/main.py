@@ -9,7 +9,7 @@ from src.video_repost.router import router as video_repost
 from src.product.router import router as product_router
 from src.basket.router import router as basket_router
 from src.admin.router import router as admin
-
+from src.pages.router import router as pages_router
 
 app = FastAPI()
 
@@ -20,6 +20,8 @@ app.include_router(comment_router)
 app.include_router(video_repost)
 app.include_router(product_router)
 app.include_router(admin)
+app.include_router(pages_router)
+
 app.include_router(
     fastapi_users.get_auth_router(auth_backend),
     prefix="/auth/jwt",
