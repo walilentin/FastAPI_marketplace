@@ -123,5 +123,4 @@ async def get_reviews(
         raise HTTPException(status_code=404, detail="No reviews found for the specified product")
 
     reviews_list = [{"review": review.text, "user": review.user_id} for review in reviews]
-
     return {"reviews": reviews_list}
