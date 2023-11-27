@@ -1,13 +1,18 @@
 from datetime import datetime
-from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTable, SQLAlchemyBaseOAuthAccountTable
+from fastapi_users_db_sqlalchemy import (
+    SQLAlchemyBaseUserTable,
+    SQLAlchemyBaseOAuthAccountTable,
+)
 from sqlalchemy import MetaData, Column, String, Boolean, TIMESTAMP, Integer, ForeignKey, Float, JSON, Table
 from sqlalchemy.orm import relationship, Mapped, mapped_column, declared_attr
 from src.database import Base
 
 metadata = MetaData()
 
+
 class OAuthAccount(SQLAlchemyBaseOAuthAccountTable[int], Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+
     @declared_attr
     def user_id(cls) -> Mapped[int]:
         return mapped_column(Integer, ForeignKey("user.id", ondelete="cascade"), nullable=False)
@@ -18,7 +23,9 @@ class Role(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
-    permissions = Column(JSON)
+
+    # New attribute for RBAC
+    role_permissions = Column(JSON, default=[])
 
     users = relationship("User", back_populates="role")
 
@@ -41,4 +48,6 @@ class User(SQLAlchemyBaseUserTable[int], Base):
     orders = relationship("Order", foreign_keys="[Order.buyer_id]", back_populates="buyer")
     comments = relationship("Comment", back_populates="user")
     videos = relationship("Video", back_populates="user")
+
+    # New relationship with Role
     role = relationship("Role", back_populates="users", lazy="joined")

@@ -1,20 +1,12 @@
-"""${message}
-
-ID ревізії: ${up_revision}
-Переглядає: ${down_revision | comma,n}
-Дата створення: ${create_date}
-
-"""
 from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
-${imports if imports else ""}
 
-revision: str = ${repr(up_revision)}
-down_revision: Union[str, None] = ${repr(down_revision)}
-branch_labels: Union[str, Sequence[str], None] = ${repr(branch_labels)}
-depends_on: Union[str, Sequence[str], None] = ${repr(depends_on)}
+revision: str = 'c199def8c4f9'
+down_revision: Union[str, None] = None
+branch_labels: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
@@ -22,19 +14,21 @@ def upgrade() -> None:
 
     op.execute(
         """
-        INSERT INTO role (name, permissions)
-        VALUES
-            ('GUEST', '["get_reviews", "view_site"]'),
-            ('SELLER', '["create_product", "delete_product"]'),
-            ('BUYER', '["buy_product", "add_review", "get_reviews"]'),
-            ('ADMIN', '["manage_users", "manage_roles", "manage_products"]');
+    INSERT INTO role (name, role_permissions)
+    VALUES
+        ('GUEST', '["get_reviews", "view_site"]'),
+        ('SELLER', '["create_product", "delete_product"]'),
+        ('BUYER', '["buy_product", "add_review", "get_reviews"]'),
+        ('ADMIN', '["manage_users", "manage_roles", "manage_products"]');
         """
     )
+
+    # Additional upgrade statements for other tables if needed
+    # ...
 
 
 def downgrade() -> None:
     ${downgrades if downgrades else "pass"}
-
 
     op.execute(
         """

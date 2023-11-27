@@ -1,6 +1,4 @@
-from fastapi import FastAPI, Request, Depends
-from fastapi.templating import Jinja2Templates
-
+from fastapi import FastAPI, Depends
 from src.config import google_oauth_client, SECRET_AUTH
 from src.users.base_config import auth_backend, fastapi_users, current_user_has_permission
 from src.users.models import User
@@ -43,3 +41,12 @@ app.include_router(
     prefix="/auth/google",
     tags=["auth"],
 )
+
+
+@app.get("/protected")
+async def protected_route(user: User = Depends(current_user_has_permission("get_reviews"))):
+    return {"message": "You have the required permission to access this route"}
+
+@app.get("/another_protected")
+async def another_protected_route(user: User = Depends(current_user_has_permission("delete_product"))):
+    return {"message": "You have the required permission to access this route"}

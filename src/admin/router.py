@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
-from sqlalchemy import select, update, delete, distinct
+from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.templating import Jinja2Templates
 
 from src.database import get_async_session
 from src.product.models import Category
-from src.users.base_config import current_user_admin
+from src.users.base_config import current_user_has_permission
 from src.users.models import User
 
 from src.users.schemas import UserUpdate, UserCreate
@@ -15,7 +15,7 @@ router = APIRouter(prefix="/admin", tags=["Admin-Panel"])
 templates = Jinja2Templates(directory="/home/valik/Стільниця/FastAPI-like-TikTok/src/templates")
 
 
-@router.patch("/update-user/{user_id}", dependencies=[Depends(current_user_admin)])
+@router.patch("/update-user/{user_id}", dependencies=[Depends(current_user_has_permission("manage_users"))])
 async def update_user(user_id: int, user_update: UserUpdate, session: AsyncSession = Depends(get_async_session)):
     user = await session.execute(select(User).filter(User.id == user_id))
     update_data = user_update.dict(exclude_unset=True)
@@ -28,7 +28,7 @@ async def update_user(user_id: int, user_update: UserUpdate, session: AsyncSessi
     return {"message": f"User with ID {user_id} updated successfully"}
 
 
-@router.post("/create-user", dependencies=[Depends(current_user_admin)])
+@router.post("/create-user", dependencies=[Depends(current_user_has_permission("manage_users"))])
 async def create_user(user_create: UserCreate, session: AsyncSession = Depends(get_async_session)):
     new_user = User(**user_create.dict())
     session.add(new_user)
@@ -36,7 +36,7 @@ async def create_user(user_create: UserCreate, session: AsyncSession = Depends(g
     return {"message": "User created successfully"}
 
 
-@router.get("/list-users", dependencies=[Depends(current_user_admin)])
+@router.get("/list-users", dependencies=[Depends(current_user_has_permission("manage_users"))])
 async def list_users(session: AsyncSession = Depends(get_async_session)):
     user_table = User.__table__
     users = await session.execute(select(user_table))
@@ -45,7 +45,7 @@ async def list_users(session: AsyncSession = Depends(get_async_session)):
     return {"users": user_list}
 
 
-@router.delete("/delete-user/{user_id}", dependencies=[Depends(current_user_admin)])
+@router.delete("/delete-user/{user_id}", dependencies=[Depends(current_user_has_permission("manage_users"))])
 async def delete_user(user_id: int, session: AsyncSession = Depends(get_async_session)):
     user = await session.execute(select(User).filter(User.id == user_id))
     if not user.scalar():
@@ -57,12 +57,12 @@ async def delete_user(user_id: int, session: AsyncSession = Depends(get_async_se
     return {"message": f"User with ID {user_id} deleted successfully"}
 
 
-@router.get("/", dependencies=[Depends(current_user_admin)])
+@router.get("/", dependencies=[Depends(current_user_has_permission("manage_users"))])
 async def home(request: Request):
     return templates.TemplateResponse("admins.html", {"request": request})
 
 
-@router.post("/add-category", dependencies=[Depends(current_user_admin)])
+@router.post("/add-category", dependencies=[Depends(current_user_has_permission("manage_products"))])
 async def add_category(
         name_category: str,
         session: AsyncSession = Depends(get_async_session),
@@ -73,7 +73,7 @@ async def add_category(
     return stmt
 
 
-@router.delete("/delete-category/{category_id}", dependencies=[Depends(current_user_admin)])
+@router.delete("/delete-category/{category_id}", dependencies=[Depends(current_user_has_permission("manage_products"))])
 async def delete_category(
         category_id: int,
         session: AsyncSession = Depends(get_async_session),
