@@ -1,6 +1,14 @@
 from pydantic import Field
 from pydantic import BaseModel, validator
 
+class Product(BaseModel):
+    name: str
+    description: str
+    price: float
+    amount: int
+    category_id: int
+
+
 class ProductCreate(BaseModel):
     name: str
     description: str

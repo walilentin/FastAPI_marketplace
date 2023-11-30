@@ -1,18 +1,17 @@
 from http.client import HTTPException
-from sqlalchemy import select, delete, update
+from sqlalchemy import select, delete, update, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.admin.router import templates
 from src.database import get_async_session
 from src.product.models import Product, Order, Review, Category
 from src.product.schemas import ProductCreate
 from src.users.base_config import fastapi_users, current_user_has_permission
 from src.users.manager import get_user_manager
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 
 from src.users.models import User, Role
 
-router = APIRouter(prefix="/product", tags=["Product"])
+router = APIRouter(prefix="/product")
 
 
 @router.post("/add_product", dependencies=[Depends(current_user_has_permission("create_product"))])
@@ -95,13 +94,13 @@ async def add_review(
     current_user: get_user_manager = Depends(fastapi_users.current_user(active=True, optional=True)),
     session: AsyncSession = Depends(get_async_session)
 ):
-    # Check if the product exists
+
     product = await session.execute(select(Product).filter(Product.id == product_id))
     product = product.scalar()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
-    # Check if the current user is a buyer of the product
+
     is_buyer = await session.execute(
         select(Order).filter(Order.buyer_id == current_user.id, Order.item_id == product.id)
     )
@@ -109,7 +108,7 @@ async def add_review(
     if not is_buyer:
         raise HTTPException(status_code=403, detail="User is not a buyer of the product")
 
-    # Add the review to the database
+
     review = Review(text=review_text, product_id=product_id, user_id=current_user.id)
     session.add(review)
     await session.commit()
@@ -117,7 +116,7 @@ async def add_review(
     return {"message": "Review added successfully"}
 
 
-@router.get("/get-reviews/{product_id}", dependencies=[Depends(current_user_has_permission("get_reviews"))])
+@router.get("/get-reviews/{product_id}")
 async def get_reviews(
         product_id: int,
         session: AsyncSession = Depends(get_async_session)):
@@ -130,22 +129,17 @@ async def get_reviews(
     return {"reviews": reviews_list}
 
 
-@router.post("/change-role", dependencies=[Depends(current_user_has_permission("change_role"))])
-async def change_user_role(
-    new_role: str,
-    current_user: User = Depends(fastapi_users.current_user(active=True, optional=True)),
-    session: AsyncSession = Depends(get_async_session),
-):
-    valid_roles = ["GUEST", "SELLER", "BUYER"]
-    if new_role not in valid_roles:
-        raise HTTPException(status_code=400, detail="Invalid role")
+@router.get("/search")
+async def search(query: str, session: AsyncSession = Depends(get_async_session)):
+    try:
+        stmt = select(Product).where(func.lower(Product.name).ilike(f"%{query.lower()}%"))
 
-    role = await session.execute(select(Role).where(Role.name == new_role))
-    role = role.scalar()
+        result = await session.execute(stmt)
+        products = result.scalars().unique().all()
 
-    if role:
-        await session.execute(update(User).where(User.id == current_user.id).values(role_id=role.id))
-        await session.commit()
-        return {"message": f"Role changed to {new_role}"}
-    else:
-        raise HTTPException(status_code=404, detail="Role not found")
+        product_list = [{"product": {"name": product.name, "description": product.description, "price": product.price}} for product in products]
+
+        return({"query": query, "results": product_list})
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

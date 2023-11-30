@@ -10,12 +10,13 @@ from src.users.models import User, Role
 
 from src.users.schemas import UserUpdate, UserCreate
 
-router = APIRouter(prefix="/admin", tags=["Admin-Panel"])
+router = APIRouter(prefix="/admin",
+                   dependencies=[Depends(current_user_has_permission("manage_users"))])
 
 templates = Jinja2Templates(directory="/home/valik/Стільниця/FastAPI-like-TikTok/src/templates")
 
 
-@router.patch("/update-user/{user_id}", dependencies=[Depends(current_user_has_permission("manage_users"))])
+@router.patch("/update-user/{user_id}")
 async def update_user(user_id: int, user_update: UserUpdate, session: AsyncSession = Depends(get_async_session)):
     user = await session.execute(select(User).filter(User.id == user_id))
     update_data = user_update.dict(exclude_unset=True)
@@ -28,7 +29,7 @@ async def update_user(user_id: int, user_update: UserUpdate, session: AsyncSessi
     return {"message": f"User with ID {user_id} updated successfully"}
 
 
-@router.post("/create-user", dependencies=[Depends(current_user_has_permission("manage_users"))])
+@router.post("/create-user")
 async def create_user(user_create: UserCreate, session: AsyncSession = Depends(get_async_session)):
     new_user = User(**user_create.dict())
     session.add(new_user)
@@ -36,7 +37,7 @@ async def create_user(user_create: UserCreate, session: AsyncSession = Depends(g
     return {"message": "User created successfully"}
 
 
-@router.get("/list-users", dependencies=[Depends(current_user_has_permission("manage_users"))])
+@router.get("/list-users")
 async def list_users(session: AsyncSession = Depends(get_async_session)):
     user_table = User.__table__
     users = await session.execute(select(user_table))
@@ -45,7 +46,7 @@ async def list_users(session: AsyncSession = Depends(get_async_session)):
     return {"users": user_list}
 
 
-@router.delete("/delete-user/{user_id}", dependencies=[Depends(current_user_has_permission("manage_users"))])
+@router.delete("/delete-user/{user_id}")
 async def delete_user(user_id: int, session: AsyncSession = Depends(get_async_session)):
     user = await session.execute(select(User).filter(User.id == user_id))
     if not user.scalar():
@@ -56,7 +57,7 @@ async def delete_user(user_id: int, session: AsyncSession = Depends(get_async_se
 
     return {"message": f"User with ID {user_id} deleted successfully"}
 
-@router.post("/add-category", dependencies=[Depends(current_user_has_permission("manage_products"))])
+@router.post("/add-category")
 async def add_category(
         name_category: str,
         session: AsyncSession = Depends(get_async_session),
@@ -67,7 +68,7 @@ async def add_category(
     return stmt
 
 
-@router.delete("/delete-category/{category_id}", dependencies=[Depends(current_user_has_permission("manage_products"))])
+@router.delete("/delete-category/{category_id}")
 async def delete_category(
         category_id: int,
         session: AsyncSession = Depends(get_async_session),
@@ -82,7 +83,7 @@ async def delete_category(
 @router.post("/change-role", dependencies=[Depends(current_user_has_permission("change_role"))])
 async def change_user_role(
     new_role: str,
-    current_user: User = Depends(fastapi_users.current_user(active=True, optional=True)),
+    current_user: User = Depends(fastapi_users.current_user(optional=True)),
     session: AsyncSession = Depends(get_async_session),
 ):
     valid_roles = ["GUEST", "SELLER", "BUYER"]
@@ -98,3 +99,9 @@ async def change_user_role(
         return {"message": f"Role changed to {new_role}"}
     else:
         raise HTTPException(status_code=404, detail="Role not found")
+
+
+
+@router.get("/")
+async def home(request: Request):
+    return templates.TemplateResponse("admins.html", {"request": request})

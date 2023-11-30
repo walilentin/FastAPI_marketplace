@@ -9,8 +9,7 @@ from src.users.base_config import fastapi_users
 from src.users.manager import get_user_manager
 from src.video.models import Video
 
-video = APIRouter(prefix="/video",
-                  tags=["Video"])
+video = APIRouter(prefix="/video")
 
 
 @video.post("/upload")

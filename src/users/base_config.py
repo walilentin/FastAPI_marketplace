@@ -1,3 +1,5 @@
+from typing import Callable, Optional
+
 from fastapi_users import FastAPIUsers
 from fastapi_users.authentication import CookieTransport, JWTStrategy, AuthenticationBackend
 from fastapi import Depends, HTTPException
@@ -31,12 +33,13 @@ SELLER_ROLE = "SELLER"
 BUYER_ROLE = "BUYER"
 ADMIN_ROLE = "ADMIN"
 
-# Define permissions for each role
+COMMON_PERMISSIONS = ["get_reviews", "change_role"]
+
 ROLES_PERMISSIONS = {
-    GUEST_ROLE: ["get_reviews", "view_site"],
-    SELLER_ROLE: ["create_product", "delete_product"],
-    BUYER_ROLE: ["buy_product", "add_review", "get_reviews"],
-    ADMIN_ROLE: ["manage_users", "manage_roles", "manage_products"],
+    GUEST_ROLE: ["get_reviews", "view_site", "change_role"],
+    SELLER_ROLE: COMMON_PERMISSIONS + ["create_product", "delete_product"],
+    BUYER_ROLE: COMMON_PERMISSIONS + ["buy_product", "add_review"],
+    ADMIN_ROLE: COMMON_PERMISSIONS + ["manage_users", "manage_roles", "manage_products"],
 }
 
 # Custom Authentication Backend
@@ -49,9 +52,12 @@ class RBACAuthenticationBackend(AuthenticationBackend):
 
 
 def current_user_has_permission(permission: str = Depends()):
-    async def _current_user_has_permission(user: User = Depends(current_user)):
-        if permission not in user.role.role_permissions:
-            raise HTTPException(status_code=403, detail="User does not have the required permission")
+    async def _current_user_has_permission(user: Optional[User] = Depends(current_user)):
+        if user is not None and permission not in user.role.role_permissions:
+            return None
         return user
 
     return _current_user_has_permission
+
+def current_user_optional() -> Callable:
+    return Depends(fastapi_users.current_user(optional=True))

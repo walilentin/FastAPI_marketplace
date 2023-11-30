@@ -8,7 +8,7 @@ from src.product.models import Product
 from src.users.base_config import fastapi_users
 from src.users.manager import get_user_manager
 
-router = APIRouter(prefix="/basket",tags=["Basket"])
+router = APIRouter(prefix="/basket")
 
 @router.post("/add-to-basket/{product_id}")
 async def create_product(

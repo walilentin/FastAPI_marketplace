@@ -141,7 +141,7 @@
             var userId = formData.get("id");
 
             try {
-                const response = await fetch(`/admin/update-user/${userId}`, {
+                const response = await fetch(`/v1/admin/update-user/${userId}`, {
                     method: "PATCH",
                     body: JSON.stringify(Object.fromEntries(formData)),
                     headers: {
@@ -162,7 +162,7 @@
             var formData = new FormData(form);
 
             try {
-                const response = await fetch("/auth/jwt/register", {
+                const response = await fetch("/v1/auth/jwt/register", {
                     method: "POST",
                     body: JSON.stringify(Object.fromEntries(formData)),
                     headers: {
@@ -183,7 +183,7 @@
     async function listUsers() {
         console.log("Fetching users...");
         try {
-            const response = await fetch("/admin/list-users");
+            const response = await fetch("/v1/admin/list-users");
 
             // Handle the response as needed
             const data = await response.json();
@@ -218,7 +218,7 @@
             var userIdToDelete = formData.get("deleteUserId");
 
             try {
-                const response = await fetch(`/admin/delete-user/${userIdToDelete}`, {
+                const response = await fetch(`/v1/admin/delete-user/${userIdToDelete}`, {
                     method: "DELETE",
                 });
 
@@ -233,7 +233,7 @@ async function changeUserRole() {
     const selectedRole = document.getElementById('roleSelect').value;
 
     try {
-        const response = await fetch(`/admin/change-role?new_role=${selectedRole}`, {
+        const response = await fetch(`/v1/admin/change-role?new_role=${selectedRole}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

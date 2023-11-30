@@ -9,7 +9,7 @@ from src.database import get_async_session
 from src.users.base_config import fastapi_users
 from src.users.manager import get_user_manager
 
-comment = APIRouter(prefix="/comments", tags=["Comments"])
+comment = APIRouter(prefix="/comments")
 
 @comment.post("")
 async def create_comment(comment: CommentCreate, video_id: int,
