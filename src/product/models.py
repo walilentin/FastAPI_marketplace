@@ -25,8 +25,8 @@ class Product(Base):
     amount = Column(Integer, nullable=False)
     category_id = Column(Integer, ForeignKey("category.id"), nullable=False)
 
-    seller = relationship("User", foreign_keys=[seller_id], lazy="joined")
-    orders = relationship("Order", back_populates="product", lazy="joined")
+    seller = relationship("User", foreign_keys=[seller_id])
+    orders = relationship("Order", back_populates="product")
     category = relationship("Category", back_populates="products")
 
 
@@ -52,6 +52,6 @@ class Order(Base):
     item_id = Column(Integer, ForeignKey("product.id"), nullable=False)
     created_at = Column(TIMESTAMP, default=datetime.utcnow)
 
-    buyer = relationship("User", foreign_keys=[buyer_id], back_populates="orders", lazy="joined")
-    seller = relationship("User", foreign_keys=[seller_id], lazy="joined")
-    product = relationship("Product", lazy="joined")
+    buyer = relationship("User", foreign_keys=[buyer_id], back_populates="orders")
+    seller = relationship("User", foreign_keys=[seller_id])
+    product = relationship("Product")

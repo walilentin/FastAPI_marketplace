@@ -17,11 +17,11 @@ router = APIRouter(prefix="/v1")
 router.mount("/static", StaticFiles(directory="/home/valik/Стільниця/FastAPI-like-TikTok/src/static"), name="static")
 
 router.include_router(admin_router, tags=["Admin"])
-router.include_router(basket_router,tags=["Basket"])
-router.include_router(video_router,tags=["Video"])
-router.include_router(comment_router,tags=["Comment"])
-router.include_router(video_repost,tags=["Video_repost"])
-router.include_router(product_router,tags=["Product"])
+router.include_router(basket_router, tags=["Basket"])
+router.include_router(video_router, tags=["Video"])
+router.include_router(comment_router, tags=["Comment"])
+router.include_router(video_repost, tags=["Video_repost"])
+router.include_router(product_router, tags=["Product"])
 
 router.include_router(
     fastapi_users.get_auth_router(auth_backend),
@@ -34,12 +34,10 @@ router.include_router(
     tags=["Auth"]
 )
 
+
 @router.get("/")
 async def home(request: Request, current_user: User = current_user_optional()):
     return templates.TemplateResponse("base.html", {"request": request, "user": current_user})
-
-
-
 
 
 @router.get("/account", dependencies=[Depends(current_user_has_permission("view_site"))])

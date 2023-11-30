@@ -2,14 +2,13 @@ from http.client import HTTPException
 from sqlalchemy import select, delete, update, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.admin.router import templates
 from src.database import get_async_session
 from src.product.models import Product, Order, Review, Category
 from src.product.schemas import ProductCreate
 from src.users.base_config import fastapi_users, current_user_has_permission
 from src.users.manager import get_user_manager
-from fastapi import APIRouter, Depends, HTTPException
-
-from src.users.models import User, Role
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 router = APIRouter(prefix="/product")
 
@@ -137,9 +136,24 @@ async def search(query: str, session: AsyncSession = Depends(get_async_session))
         result = await session.execute(stmt)
         products = result.scalars().unique().all()
 
-        product_list = [{"product": {"name": product.name, "description": product.description, "price": product.price}} for product in products]
+        product_list = [{"product": {"id": product.id, "name": product.name, "description": product.description, "price": product.price}} for product in products]
 
         return({"query": query, "results": product_list})
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/{product_id}")
+async def view_product(
+    request: Request,
+    product_id: int,
+    session: AsyncSession = Depends(get_async_session),
+    current_user: get_user_manager = Depends(fastapi_users.current_user(active=True, optional=True)),
+):
+    product = await session.execute(select(Product).filter(Product.id == product_id))
+    product = product.scalar()
+
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    return templates.TemplateResponse("product.html", {"request": request, "product": product, "user": current_user})

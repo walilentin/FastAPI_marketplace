@@ -3,19 +3,14 @@ from fastapi_users_db_sqlalchemy import (
     SQLAlchemyBaseUserTable,
     SQLAlchemyBaseOAuthAccountTable,
 )
-from sqlalchemy import MetaData, Column, String, Boolean, TIMESTAMP, Integer, ForeignKey, Float, JSON, Table
-from sqlalchemy.orm import relationship, Mapped, mapped_column, declared_attr
+from sqlalchemy import Column, String, Boolean, TIMESTAMP, Integer, Float, JSON, ForeignKey
+from sqlalchemy.orm import relationship
 from src.database import Base
-
-metadata = MetaData()
 
 
 class OAuthAccount(SQLAlchemyBaseOAuthAccountTable[int], Base):
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-
-    @declared_attr
-    def user_id(cls) -> Mapped[int]:
-        return mapped_column(Integer, ForeignKey("user.id", ondelete="cascade"), nullable=False)
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("user.id", ondelete="cascade"), nullable=False)
 
 
 class Role(Base):
@@ -23,11 +18,10 @@ class Role(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
-
-    # New attribute for RBAC
     role_permissions = Column(JSON, default=[])
 
     users = relationship("User", back_populates="role")
+
 
 class User(SQLAlchemyBaseUserTable[int], Base):
     __tablename__ = 'user'
@@ -39,7 +33,6 @@ class User(SQLAlchemyBaseUserTable[int], Base):
     registered_at = Column(TIMESTAMP, default=datetime.utcnow)
     hashed_password = Column(String(length=1024), nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
-    is_superuser = Column(Boolean, default=False, nullable=False)
     is_verified = Column(Boolean, default=False, nullable=False)
 
     oauth_accounts = relationship("OAuthAccount", lazy="joined")
@@ -49,5 +42,19 @@ class User(SQLAlchemyBaseUserTable[int], Base):
     comments = relationship("Comment", back_populates="user")
     videos = relationship("Video", back_populates="user")
 
-    # New relationship with Role
     role = relationship("Role", back_populates="users", lazy="joined")
+
+    def get_filtered_info(self):
+        return {
+            "id": self.id,
+            "email": self.email,
+            "username": self.username,
+            "registered_at": self.registered_at,
+            "is_active": self.is_active,
+            "balance": self.balance,
+            "role": {
+                "id": self.role.id,
+                "name": self.role.name,
+                "role_permissions": self.role.role_permissions,
+            }
+        }
