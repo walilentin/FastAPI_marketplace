@@ -13,7 +13,7 @@ from src.users.schemas import UserUpdate, UserCreate
 router = APIRouter(prefix="/admin",
                    dependencies=[Depends(current_user_has_permission("manage_users"))])
 
-templates = Jinja2Templates(directory="/home/valik/Стільниця/FastAPI-like-TikTok/src/templates")
+templates = Jinja2Templates(directory="/home/valik/FastAPI_marketplace/src/templates")
 
 
 @router.patch("/update-user/{user_id}")

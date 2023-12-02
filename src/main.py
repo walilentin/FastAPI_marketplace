@@ -1,11 +1,13 @@
 from fastapi import FastAPI
+from starlette.staticfiles import StaticFiles
+
 from src.config import google_oauth_client, SECRET_AUTH
 from src.users.base_config import auth_backend, fastapi_users
 from src.pages.router import router as pages_router
 
 app = FastAPI()
 
-
+app.mount("/static", StaticFiles(directory="/home/valik/FastAPI_marketplace/src/static"), name="static")
 app.include_router(pages_router)
 
 app.include_router(

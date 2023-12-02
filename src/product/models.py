@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import MetaData, Column, Integer, ForeignKey, String, TIMESTAMP, Float
+from sqlalchemy import MetaData, Column, Integer, ForeignKey, String, TIMESTAMP, Float, Boolean
 from sqlalchemy.orm import relationship
 from src.database import Base
 
@@ -21,6 +21,7 @@ class Product(Base):
     name = Column(String, nullable=False)
     description = Column(String, nullable=True)
     price = Column(Float, nullable=False)
+    # available = Column(Boolean, nullable=False, default=True)
     seller_id = Column(Integer, ForeignKey("user.id"), nullable=False)
     amount = Column(Integer, nullable=False)
     category_id = Column(Integer, ForeignKey("category.id"), nullable=False)

@@ -14,7 +14,7 @@ from src.admin.router import router as admin_router
 
 router = APIRouter(prefix="/v1")
 
-router.mount("/static", StaticFiles(directory="/home/valik/Стільниця/FastAPI-like-TikTok/src/static"), name="static")
+router.mount("/static", StaticFiles(directory="/home/valik/FastAPI_marketplace/src/static"), name="static")
 
 router.include_router(admin_router, tags=["Admin"])
 router.include_router(basket_router, tags=["Basket"])
@@ -38,6 +38,16 @@ router.include_router(
 @router.get("/")
 async def home(request: Request, current_user: User = current_user_optional()):
     return templates.TemplateResponse("base.html", {"request": request, "user": current_user})
+
+
+@router.get("/login")
+async def home(request: Request, current_user: User = current_user_optional()):
+    return templates.TemplateResponse("login.html", {"request": request, "user": current_user})
+
+
+@router.get("/register")
+async def home(request: Request, current_user: User = current_user_optional()):
+    return templates.TemplateResponse("registration.html", {"request": request, "user": current_user})
 
 
 @router.get("/account", dependencies=[Depends(current_user_has_permission("view_site"))])
