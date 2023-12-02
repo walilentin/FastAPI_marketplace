@@ -6,41 +6,138 @@
 {% endblock %}
 
 {% block content %}
-    <h2>My Account</h2>
 
-    <div class="row">
-        <div class="col-md-6">
-            <h4>User Information</h4>
-            <p>Name: {{ user.username }}</p>
-            <p>Email: {{ user.email }}</p>
-            <p>Role: {{ user.role.name }}</p>
+        <h2>My Account</h2>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h4 class="card-title">User Information</h4>
+                        <p class="card-text">Name: {{ user.username }}</p>
+                        <p class="card-text">Email: {{ user.email }}</p>
+                        <p class="card-text" id="userRole">Role: {{ user.role.name }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h4 class="card-title">Settings</h4>
+                        <p class="card-text">Change password, notification preferences, etc.</p>
+                        <button class="btn btn-primary" onclick="changeUserRole()">Change Role</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="col-md-6">
-            <h4>Settings</h4>
-            <p>Change password, notification preferences, etc.</p>
-
-            <button class="btn btn-primary" onclick="changeUserRole()">Change Role</button>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h4 class="card-title">Order History</h4>
+                        <ul class="list-group">
+                            {% for order in user.orders %}
+                                <li class="list-group-item">Order #{{ order.id }} - {{ order.product.name }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+<div class="col-md-6">
+    <div class="card mb-4">
+        <div class="card-body">
+            <h4 class="card-title">Settings</h4>
+            <p class="card-text">Change password, notification preferences, etc.</p>
+            <button class="btn btn-primary" onclick="showEmailForm()">Change Password</button>
         </div>
     </div>
+</div>
 
-    <div class="row">
-        <div class="col-md-6">
-            <h4>Order History</h4>
-            <ul>
-                {% for order in user.orders %}
-                    <li>Order #{{ order.id }} - {{ order.product.name }} </li>
-                {% endfor %}
-            </ul>
+<!-- Форма для введення пошти -->
+<div id="emailForm" style="display: none;">
+    <label for="email">Enter your email:</label>
+    <input type="email" id="email" name="email" required>
+    <button type="button" class="btn btn-primary" onclick="sendResetToken()">Send Token</button>
+</div>
+
+<!-- Форма для введення токену та нового пароля -->
+<div id="resetPasswordForm" style="display: none;">
+    <label for="token">Enter the token:</label>
+    <input type="text" id="token" name="token" required>
+    <label for="newPassword">Enter your new password:</label>
+    <input type="password" id="newPassword" name="newPassword" required>
+    <button type="button" class="btn btn-primary" onclick="resetPassword()">Reset Password</button>
+</div>
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h4 class="card-title">Additional Settings</h4>
+                        <p class="card-text">Change additional settings here.</p>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="col-md-6">
-            <h4>Additional Settings</h4>
-            <p>Change additional settings here.</p>
-        </div>
-    </div>
 
     <script>
+        function showEmailForm() {
+            document.getElementById('emailForm').style.display = 'block';
+        }
+
+        async function sendResetToken() {
+            const email = document.getElementById('email').value;
+
+            try {
+                const response = await fetch('/v1/auth/forgot-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({email}),
+                });
+
+                if (!response.ok) {
+                    const errorMessage = await response.json();
+                    alert(`Error: ${errorMessage.detail}`);
+                } else {
+                    alert('Token sent successfully. Check your email.');
+                    // Опціонально: переключення на форму для введення токену та нового пароля
+                    document.getElementById('emailForm').style.display = 'none';
+                    document.getElementById('resetPasswordForm').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while sending the token.');
+            }
+        }
+
+        async function resetPassword() {
+            const token = document.getElementById('token').value;
+            const newPassword = document.getElementById('newPassword').value;
+
+            try {
+                const response = await fetch('/v1/auth/reset-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({token, password: newPassword}),
+                });
+
+                if (!response.ok) {
+                    const errorMessage = await response.json();
+                    alert(`Error: ${errorMessage.detail}`);
+                } else {
+                    alert('Password reset successfully.');
+                    // Опціонально: виконати додаткову логіку або перезавантажити сторінку
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while resetting the password.');
+            }
+        }
         document.addEventListener('DOMContentLoaded', function () {
             console.log('Page loaded.');
         });

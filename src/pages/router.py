@@ -34,6 +34,12 @@ router.include_router(
     tags=["Auth"]
 )
 
+router.include_router(
+    fastapi_users.get_reset_password_router(),
+    prefix="/auth",
+    tags=["auth"],
+    dependencies=[Depends(current_user_has_permission("change_password"))]
+)
 
 @router.get("/")
 async def home(request: Request, current_user: User = current_user_optional()):
@@ -41,13 +47,13 @@ async def home(request: Request, current_user: User = current_user_optional()):
 
 
 @router.get("/login")
-async def home(request: Request, current_user: User = current_user_optional()):
-    return templates.TemplateResponse("login.html", {"request": request, "user": current_user})
+async def home(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
 
 
 @router.get("/register")
-async def home(request: Request, current_user: User = current_user_optional()):
-    return templates.TemplateResponse("registration.html", {"request": request, "user": current_user})
+async def home(request: Request):
+    return templates.TemplateResponse("registration.html", {"request": request})
 
 
 @router.get("/account", dependencies=[Depends(current_user_has_permission("view_site"))])

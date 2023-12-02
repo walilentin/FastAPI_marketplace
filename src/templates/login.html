@@ -124,7 +124,7 @@
         const form = document.querySelector("#authForm");
 
         document.getElementById("loginButton").addEventListener("click", async function (event) {
-            event.preventDefault(); // Важливо для того, щоб зупинити дефолтну поведінку форми
+            event.preventDefault();
             const formData = new FormData(form);
             const response = await fetch("/v1/auth/jwt/login", {
                 method: "POST",
