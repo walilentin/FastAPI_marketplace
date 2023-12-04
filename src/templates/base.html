@@ -132,7 +132,10 @@
 <body>
 
 <nav class="navbar navbar-expand-lg ">
+<<<<<<< HEAD
+=======
 
+>>>>>>> 5dec6267f8043cb818063b9fb8a5e0a8df7c1aaf
     <div class="container-login100">
         <a class="navbar-brand">Marketplace</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
@@ -140,6 +143,11 @@
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
+<<<<<<< HEAD
+            {% block navbar %}
+            <!-- Вміст вашого навбару -->
+=======
+>>>>>>> 5dec6267f8043cb818063b9fb8a5e0a8df7c1aaf
             <ul class="navbar-nav">
                 <li class="nav-item active">
                     <a class="nav-link" href="/v1">Home</a>
@@ -166,14 +174,52 @@
                         <button type="submit" class="btn btn-link btn-reg">Register</button>
                     </form>
                 </li>
+<<<<<<< HEAD
+            </ul>
+            {% endif %}
+            {% endblock %}
+=======
 
             </ul>
             {% endif %}
 
+>>>>>>> 5dec6267f8043cb818063b9fb8a5e0a8df7c1aaf
         </div>
     </div>
 
 </nav>
+<<<<<<< HEAD
+<div class="container mt-3">
+    <div class="row">
+        <div class="col-md-9">
+            {% block content %}
+                <div class="item">
+                    <form id="searchForm" onsubmit="searchProducts(event)">
+                        <div class="form-group">
+                            <label for="searchInput">What you search?:</label>
+                            <input type="text" class="form-control" id="searchInput" name="query" placeholder="Enter search query">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </form>
+                    <div id="searchResults" class="search-results-grid"></div>
+                </div>
+            {% endblock %}
+        </div>
+        <div class="col-md-3">
+            {% block left_column %}
+                <ul class="list-group">
+                    {% for c in category %}
+                        <li class="list-group-item">
+                            <a class="category-link" href="#" data-category-id="{{ c.id }}">{{ c.name }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endblock %}
+        </div>
+    </div>
+</div>
+
+=======
 
 <div class="container mt-3">
     {% block content %}
@@ -192,6 +238,7 @@
 </div>
 
 
+>>>>>>> 5dec6267f8043cb818063b9fb8a5e0a8df7c1aaf
 <footer class="footer">
     <p>&copy; 2023 Marketplace</p>
 </footer>
@@ -200,6 +247,28 @@
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script>
+<<<<<<< HEAD
+    document.addEventListener('DOMContentLoaded', function () {
+        const categoryLinks = document.querySelectorAll('.category-link');
+
+        categoryLinks.forEach(link => {
+            link.addEventListener('click', function (event) {
+                event.preventDefault();
+                const categoryId = this.getAttribute('data-category-id');
+                viewCategory(categoryId);
+            });
+        });
+    });
+
+    async function viewCategory(categoryId) {
+        if (categoryId && categoryId.trim() !== '') {
+            window.location.href = `/v1/category/${categoryId}`;
+        } else {
+            console.error('Invalid category ID');
+        }
+    }
+=======
+>>>>>>> 5dec6267f8043cb818063b9fb8a5e0a8df7c1aaf
 
     async function searchProducts(event) {
         event.preventDefault();
@@ -251,6 +320,10 @@
             console.error('Invalid product_id');
         }
     }
+<<<<<<< HEAD
+
+=======
+>>>>>>> 5dec6267f8043cb818063b9fb8a5e0a8df7c1aaf
 </script>
 </body>
 </html>
