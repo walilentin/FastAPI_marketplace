@@ -46,6 +46,7 @@ router.include_router(
 @router.get("/")
 async def home(request: Request, categories: dict = Depends(get_categories),
                current_user: User = current_user_optional()):
+    templates.env.globals['category'] = categories
     return templates.TemplateResponse("base.html", {"request": request, "category": categories, "user": current_user})
 
 

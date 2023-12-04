@@ -1,5 +1,5 @@
 from http.client import HTTPException
-from sqlalchemy import select, delete, update, func
+from sqlalchemy import select, delete, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.admin.router import templates
@@ -14,12 +14,20 @@ router = APIRouter(prefix="/product")
 
 category_router = APIRouter(prefix="/category")
 
+async def get_categories(session: AsyncSession = Depends(get_async_session)):
+    stmt = select(Category).where(Category.id >= 1)
+    result = await session.execute(stmt)
+    categories = result.scalars()
+    category_list = [{"id": category.id, "name": category.name_category} for category in categories]
+    return category_list
 
 @category_router.get("/{category_id}")
 async def view_category(
         request: Request,
         category_id: int,
         session: AsyncSession = Depends(get_async_session),
+        current_user: get_user_manager = Depends(fastapi_users.current_user(active=True, optional=True)),
+
 ):
     category = await session.execute(select(Category).filter(Category.id == category_id))
     category = category.scalar()
@@ -30,8 +38,7 @@ async def view_category(
     products = await session.execute(select(Product).filter(Product.category_id == category_id))
     products = products.scalars().all()
 
-    return templates.TemplateResponse("category.html",
-                                      {"request": request, "current_category": category, "product": products})
+    return templates.TemplateResponse("category.html",{"request": request, "current_category": category, "product": products, "user": current_user})
 
 
 @router.post("/add_product", dependencies=[Depends(current_user_has_permission("create_product"))])
@@ -145,12 +152,6 @@ async def get_reviews(
     return {"reviews": reviews_list}
 
 
-async def get_categories(session: AsyncSession = Depends(get_async_session)):
-    stmt = select(Category).where(Category.id >= 1)
-    result = await session.execute(stmt)
-    categories = result.scalars()
-    category_list = [{"id": category.id, "name": category.name_category} for category in categories]
-    return category_list
 
 
 @router.get("/search")
@@ -165,13 +166,6 @@ async def search(query: str, session: AsyncSession = Depends(get_async_session))
                                      "price": product.price}} for product in products]
 
         return ({"query": query, "results": product_list})
-
-        product_list = [{"product": {"id": product.id, "name": product.name, "description": product.description,
-                                     "price": product.price}} for product in products]
-
-        return ({"query": query, "results": product_list})
-
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -31,8 +31,7 @@
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             margin-top: 20px;
-            max-width: 60%;
-            width: 100%;
+
         }
 
         .item {
@@ -91,21 +90,6 @@
             gap: 20px;
         }
 
-        .product-name-link {
-            color: #000000;
-            text-decoration: none;
-            cursor: pointer;
-            transition: color 0.3s ease;
-        }
-
-        .product-name-link:hover {
-            color: #000000;
-        }
-
-        .card-text {
-            margin-top: 10px;
-            color: #555; /* Adjust the color as needed */
-        }
 
         .container-login100 {
             padding: 5px;
@@ -178,7 +162,6 @@
     <div class="row">
         <div class="col-md-9">
             {% block content %}
-            <div class="item">
                 <form id="searchForm" onsubmit="searchProducts(event)">
                     <div class="form-group">
                         <label for="searchInput">What you search?:</label>
@@ -187,8 +170,8 @@
                     </div>
                     <button type="submit" class="btn btn-primary">Search</button>
                 </form>
-                <div id="searchResults" class="search-results-grid"></div>
-            </div>
+
+            <div id="searchResults" class="search-results-grid"></div>
             {% endblock %}
         </div>
         <div class="col-md-3">

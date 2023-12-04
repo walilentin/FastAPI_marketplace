@@ -27,6 +27,8 @@
                         <h4 class="card-title">Settings</h4>
                         <p class="card-text">Change password, notification preferences, etc.</p>
                         <button class="btn btn-primary" onclick="changeUserRole()">Change Role</button>
+                        <button class="btn btn-primary" onclick="showEmailForm()">Change Password</button>
+
                     </div>
                 </div>
             </div>
@@ -45,31 +47,12 @@
                     </div>
                 </div>
             </div>
-<div class="col-md-6">
-    <div class="card mb-4">
-        <div class="card-body">
-            <h4 class="card-title">Settings</h4>
-            <p class="card-text">Change password, notification preferences, etc.</p>
-            <button class="btn btn-primary" onclick="showEmailForm()">Change Password</button>
-        </div>
-    </div>
-</div>
-
-<!-- Форма для введення пошти -->
 <div id="emailForm" style="display: none;">
     <label for="email">Enter your email:</label>
     <input type="email" id="email" name="email" required>
     <button type="button" class="btn btn-primary" onclick="sendResetToken()">Send Token</button>
 </div>
 
-<!-- Форма для введення токену та нового пароля -->
-<div id="resetPasswordForm" style="display: none;">
-    <label for="token">Enter the token:</label>
-    <input type="text" id="token" name="token" required>
-    <label for="newPassword">Enter your new password:</label>
-    <input type="password" id="newPassword" name="newPassword" required>
-    <button type="button" class="btn btn-primary" onclick="resetPassword()">Reset Password</button>
-</div>
             <div class="col-md-6">
                 <div class="card mb-4">
                     <div class="card-body">
@@ -131,11 +114,6 @@
                     alert(`Error: ${errorMessage.detail}`);
                 } else {
                     alert('Password reset successfully.');
-<<<<<<< HEAD
-
-=======
-                    // Опціонально: виконати додаткову логіку або перезавантажити сторінку
->>>>>>> 5dec6267f8043cb818063b9fb8a5e0a8df7c1aaf
                 }
             } catch (error) {
                 console.error('Error:', error);

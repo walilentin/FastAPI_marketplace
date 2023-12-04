@@ -3,35 +3,23 @@
 {% block title %}Category{% endblock %}
 
 {% block content %}
-  <div class="item">
-    <h2>Продукти в категорії : {{ current_category.name_category }}</h2>
 
-    <!-- Left Column - Category Select -->
-    <div class="form-group">
-      <ul class="list-group">
-        {% for category in categories %}
-          <li class="list-group-item">
-          </li>
-        {% endfor %}
-      </ul>
-    </div>
+<h2>Продукти в категорії : {{ current_category.name_category }}</h2>
+<div class="row">
+    {% for products in product %}
+<div class="col-lg-4 col-md-6 mb-4">
+<div class="card h-100">
+    <a href="/v1/product/{{ products.id }}">
+    </a>
+<div class="card-body">
+    <a class="product-name-link" href="/v1/product/{{ products.id }}">
+        <h4 class="card-title">{{ products.name }}</h4>
+    </a>
+<p class="card-text">Price: ${{ products.price }}</p>
+</div>
+</div>
+</div>
+    {% endfor %}
+</div>
 
-    <!-- Right Column - Product Grid -->
-    <div class="row">
-      {% for products in product %}
-        <div class="col-lg-4 col-md-6 mb-4">
-          <div class="card h-100">
-            <a href="/v1/product/{{ products.id }}">
-            </a>
-            <div class="card-body">
-              <a class="product-name-link" href="/v1/product/{{ products.id }}">
-                <h4 class="card-title">{{ products.name }}</h4>
-              </a>
-              <p class="card-text">Price: ${{ products.price }}</p>
-            </div>
-          </div>
-        </div>
-      {% endfor %}
-    </div>
-  </div>
 {% endblock %}
