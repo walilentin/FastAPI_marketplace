@@ -15,7 +15,7 @@ class ProductCreate(BaseModel):
     price: float
     amount: int = Field(1, ge=1)
     category_id: int
-
+    seller_id: int
     @validator("amount")
     def check_amount(cls, value):
         if value < 1:

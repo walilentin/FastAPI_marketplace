@@ -10,12 +10,13 @@ from src.video_repost.router import router as video_repost
 from src.product.router import get_categories
 from src.product.router import category_router
 from src.product.router import router as product_router
-from src.basket.router import router as basket_router
+from src.basket.router import router as basket_router, get_basket
 from src.admin.router import router as admin_router
 
 router = APIRouter(prefix="/v1")
 
 router.mount("/static", StaticFiles(directory="/home/valik/FastAPI_marketplace/src/static"), name="static")
+
 
 router.include_router(admin_router, tags=["Admin"])
 router.include_router(basket_router, tags=["Basket"])
@@ -27,7 +28,7 @@ router.include_router(category_router, tags=["Category"])
 router.include_router(
     fastapi_users.get_auth_router(auth_backend),
     prefix="/auth/jwt",
-    tags=["Auth"]
+    tags=["Auth"],
 )
 router.include_router(
     fastapi_users.get_register_router(UserRead, UserCreate),
@@ -44,22 +45,30 @@ router.include_router(
 
 
 @router.get("/")
-async def home(request: Request, categories: dict = Depends(get_categories),
-               current_user: User = current_user_optional()):
+async def home(request: Request,
+               categories: dict = Depends(get_categories),
+               current_user: User = current_user_optional(),
+               basket: list = Depends(get_basket)):
     templates.env.globals['category'] = categories
-    return templates.TemplateResponse("base.html", {"request": request, "category": categories, "user": current_user})
+    return templates.TemplateResponse("index.html",
+                                       {"request": request, "category": categories, "user": current_user, "basket": basket, "basket_count": len(basket)})
+
 
 
 @router.get("/login")
-async def home(request: Request):
+async def login(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
+
+@router.get("/orders")
+async def orders(request: Request, current_user: User = current_user_optional()):
+    return templates.TemplateResponse("orders.html", {"request": request, "user": current_user})
 
 
 @router.get("/register")
-async def home(request: Request):
+async def register(request: Request):
     return templates.TemplateResponse("registration.html", {"request": request})
 
 
-@router.get("/account", dependencies=[Depends(current_user_has_permission("view_site"))])
+@router.get("/account")
 async def account(request: Request, current_user: User = current_user_optional()):
-    return templates.TemplateResponse("account.html", {"request": request, "user": current_user})
+    return templates.TemplateResponse("account2.html", {"request": request, "user": current_user})

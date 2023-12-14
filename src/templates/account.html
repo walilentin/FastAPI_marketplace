@@ -1,155 +1,145 @@
-<!-- templates/account.html -->
-{% extends "base.html" %}
+{% extends 'index.html' %}
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <link href="/static/nav-css/bootstrap.css" rel="stylesheet"/>
 
-{% block title %}
-    My Account - {{ super() }}
-{% endblock %}
+    <link href="/static/nav-css/pe-icon-7-stroke.css" rel="stylesheet"/>
+    <link href="/static/nav-css/ct-navbar.css" rel="stylesheet"/>
+
+    <!-- Font Awesome -->
+    <link href="http://netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+
+    <link href='http://fonts.googleapis.com/css?family=Grand+Hotel' rel='stylesheet' type='text/css'>
+    <script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
+</head>
 
 {% block content %}
+<style>
+    .main-container {
+        background-color: rgba(111, 111, 123, 0.9); /* Прозорий білий фон */
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Тінь для контейнера */
+        border-radius: 10px;
+        max-width: 600px;
+        width: 100%;
+        margin: auto;
+    }
+</style>
+<div class="main-container">
 
-        <h2>My Account</h2>
+    <h2>My Account</h2>
+    <h4 class="card-title">User Information</h4>
+    <p class="card-text">Name: {{ user.username }}</p>
+    <p class="card-text">Email: {{ user.email }}</p>
+    <p class="card-text" id="userRole">Role: {{ user.role.name }}</p>
 
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <h4 class="card-title">User Information</h4>
-                        <p class="card-text">Name: {{ user.username }}</p>
-                        <p class="card-text">Email: {{ user.email }}</p>
-                        <p class="card-text" id="userRole">Role: {{ user.role.name }}</p>
-                    </div>
-                </div>
-            </div>
 
-            <div class="col-md-6">
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <h4 class="card-title">Settings</h4>
-                        <p class="card-text">Change password, notification preferences, etc.</p>
-                        <button class="btn btn-primary" onclick="changeUserRole()">Change Role</button>
-                        <button class="btn btn-primary" onclick="showEmailForm()">Change Password</button>
+    <h4 class="card-title">Settings</h4>
+    <p class="card-text">Change password, notification preferences, etc.</p>
+    <button class="btn btn-primary" onclick="changeUserRole()">Change Role</button>
+    <button class="btn btn-primary" onclick="showEmailForm()">Change Password</button>
+    <p></p>
+    <div id="emailForm" style="display: none;">
+        <label for="email">Enter your email:</label>
+        <input type="email" id="email" name="email" required>
+        <button type="button" class="btn btn-primary" onclick="sendResetToken()">Send Token</button>
+    </div>
 
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <h4 class="card-title">Order History</h4>
-                        <ul class="list-group">
-                            {% for order in user.orders %}
-                                <li class="list-group-item">Order #{{ order.id }} - {{ order.product.name }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-<div id="emailForm" style="display: none;">
-    <label for="email">Enter your email:</label>
-    <input type="email" id="email" name="email" required>
-    <button type="button" class="btn btn-primary" onclick="sendResetToken()">Send Token</button>
+    <!-- Additional code for password reset -->
+    <div id="resetPasswordForm" style="display: none;">
+        <label for="token">Enter the token:</label>
+        <input type="text" id="token" name="token" required>
+        <label for="newPassword">Enter new password:</label>
+        <input type="password" id="newPassword" name="newPassword" required>
+        <button type="button" class="btn btn-primary" onclick="resetPassword()">Reset Password</button>
+    </div>
 </div>
 
-            <div class="col-md-6">
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <h4 class="card-title">Additional Settings</h4>
-                        <p class="card-text">Change additional settings here.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
 
+<script>
+    function showEmailForm() {
+        document.getElementById('emailForm').style.display = 'block';
+    }
 
-    <script>
-        function showEmailForm() {
-            document.getElementById('emailForm').style.display = 'block';
-        }
+    async function sendResetToken() {
+        const email = document.getElementById('email').value;
 
-        async function sendResetToken() {
-            const email = document.getElementById('email').value;
+        try {
+            const response = await fetch('/v1/auth/forgot-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({email}),
+            });
 
-            try {
-                const response = await fetch('/v1/auth/forgot-password', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({email}),
-                });
-
-                if (!response.ok) {
-                    const errorMessage = await response.json();
-                    alert(`Error: ${errorMessage.detail}`);
-                } else {
-                    alert('Token sent successfully. Check your email.');
-                    // Опціонально: переключення на форму для введення токену та нового пароля
-                    document.getElementById('emailForm').style.display = 'none';
-                    document.getElementById('resetPasswordForm').style.display = 'block';
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred while sending the token.');
+            if (!response.ok) {
+                const errorMessage = await response.json();
+                alert(`Error: ${errorMessage.detail}`);
+            } else {
+                alert('Token sent successfully. Check your email.');
+                // Опціонально: переключення на форму для введення токену та нового пароля
+                document.getElementById('emailForm').style.display = 'none';
+                document.getElementById('resetPasswordForm').style.display = 'block';
             }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while sending the token.');
         }
+    }
 
-        async function resetPassword() {
-            const token = document.getElementById('token').value;
-            const newPassword = document.getElementById('newPassword').value;
+    async function resetPassword() {
+        const token = document.getElementById('token').value;
+        const newPassword = document.getElementById('newPassword').value;
 
-            try {
-                const response = await fetch('/v1/auth/reset-password', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({token, password: newPassword}),
-                });
+        try {
+            const response = await fetch('/v1/auth/reset-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({token, password: newPassword}),
+            });
 
-                if (!response.ok) {
-                    const errorMessage = await response.json();
-                    alert(`Error: ${errorMessage.detail}`);
-                } else {
-                    alert('Password reset successfully.');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred while resetting the password.');
+            if (!response.ok) {
+                const errorMessage = await response.json();
+                alert(`Error: ${errorMessage.detail}`);
+            } else {
+                alert('Password reset successfully.');
             }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while resetting the password.');
         }
-        document.addEventListener('DOMContentLoaded', function () {
-            console.log('Page loaded.');
-        });
+    }
 
-        async function changeUserRole() {
-            const currentRole = '{{ user.role.name }}';
+    async function changeUserRole() {
+        const currentRole = '{{ user.role.name }}';
 
-            const newRole = currentRole === 'SELLER' ? 'BUYER' : 'SELLER';
+        const newRole = currentRole === 'SELLER' ? 'BUYER' : 'SELLER';
 
-            try {
-                const response = await fetch(`/v1/admin/change-role?new_role=${newRole}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                });
+        try {
+            const response = await fetch(`/v1/admin/change-role?new_role=${newRole}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
 
-                if (!response.ok) {
-                    const errorMessage = await response.json();
-                    alert(`Error: ${errorMessage.detail}`);
-                } else {
-                    const result = await response.json();
-                    alert(result.message);
-                    // Опціонально: оновлення відображення поточної ролі на сторінці
-                    document.querySelector('#userRole').innerText = `Role: ${newRole}`;
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred while changing the role.');
+            if (!response.ok) {
+                const errorMessage = await response.json();
+                alert(`Error: ${errorMessage.detail}`);
+            } else {
+                const result = await response.json();
+                alert(result.message);
+                // Опціонально: оновлення відображення поточної ролі на сторінці
+                document.querySelector('#userRole').innerText = `Role: ${newRole}`;
             }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while changing the role.');
         }
-    </script>
+    }
+</script>
 {% endblock %}

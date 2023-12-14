@@ -43,7 +43,7 @@
 
         .btn-auth,
         .btn-reg {
-            color: #070707;
+            color: #ffffff;
             border-radius: 5px;
             margin-right: 5px;
             max-width: 100px; /* Adjust the max-width as needed */
@@ -111,6 +111,25 @@
             background-image: url('/static/images/bg-01.jpg');
             background-size: cover;
         }
+
+        .container-login100 {
+            padding: 5px;
+            max-width: 75%;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav {
+            color: #101010;
+            padding: 5px;
+            height: 40px;
+            box-sizing: border-box;
+            background-color: #333;
+        }
+
     </style>
 </head>
 <body>
@@ -118,21 +137,25 @@
 <nav class="navbar navbar-expand-lg ">
 
     <div class="container-login100">
-        <a class="navbar-brand">Marketplace</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        <a class="navbar-brand" href="/v1/">Marketplace</a>
         <div class="collapse navbar-collapse" id="navbarNav">
             {% block navbar %}
             <ul class="navbar-nav">
-                <li class="nav-item active">
-                    <a class="nav-link" href="/v1">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/about">About</a>
+                <li class="nav-item text-center" style="width: 100%;">
+                    <form id="searchForm" onsubmit="searchProducts(event)"
+                          class="form-inline d-flex justify-content-center">
+                        <div class="input-group">
+                            <input class="form-control" type="search" id="searchInput" name="query"
+                                   placeholder="Enter search query">
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-outline-light">Search</button>
+                            </div>
+                        </div>
+                    </form>
                 </li>
             </ul>
+
+
             {% if user %}
             <ul class="navbar-nav ml-auto">
                 <li class="nav-item">
@@ -162,14 +185,7 @@
     <div class="row">
         <div class="col-md-9">
             {% block content %}
-                <form id="searchForm" onsubmit="searchProducts(event)">
-                    <div class="form-group">
-                        <label for="searchInput">What you search?:</label>
-                        <input type="text" class="form-control" id="searchInput" name="query"
-                               placeholder="Enter search query">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Search</button>
-                </form>
+
 
             <div id="searchResults" class="search-results-grid"></div>
             {% endblock %}
@@ -246,7 +262,6 @@
             resultsDiv.appendChild(card);
         }
 
-        // Attach click event listener to product name buttons
         const productNameButtons = document.querySelectorAll('.product-name-button');
         productNameButtons.forEach(button => {
             button.addEventListener('click', function () {

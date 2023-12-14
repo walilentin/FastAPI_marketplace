@@ -55,4 +55,4 @@ class Order(Base):
 
     buyer = relationship("User", foreign_keys=[buyer_id], back_populates="orders")
     seller = relationship("User", foreign_keys=[seller_id])
-    product = relationship("Product")
+    product = relationship("Product", lazy="joined")

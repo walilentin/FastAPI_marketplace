@@ -1,4 +1,5 @@
 from http.client import HTTPException
+
 from sqlalchemy import select, delete, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -6,13 +7,13 @@ from src.admin.router import templates
 from src.database import get_async_session
 from src.product.models import Product, Order, Review, Category
 from src.product.schemas import ProductCreate
+from src.product.service import ProductService, get_product_service
 from src.users.base_config import fastapi_users, current_user_has_permission
 from src.users.manager import get_user_manager
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 router = APIRouter(prefix="/product")
-
-category_router = APIRouter(prefix="/category")
+category_router = APIRouter(prefix="/category", dependencies=[Depends(current_user_has_permission("manage_products"))])
 
 async def get_categories(session: AsyncSession = Depends(get_async_session)):
     stmt = select(Category).where(Category.id >= 1)
@@ -20,6 +21,7 @@ async def get_categories(session: AsyncSession = Depends(get_async_session)):
     categories = result.scalars()
     category_list = [{"id": category.id, "name": category.name_category} for category in categories]
     return category_list
+
 
 @category_router.get("/{category_id}")
 async def view_category(
@@ -38,82 +40,84 @@ async def view_category(
     products = await session.execute(select(Product).filter(Product.category_id == category_id))
     products = products.scalars().all()
 
-    return templates.TemplateResponse("category.html",{"request": request, "current_category": category, "product": products, "user": current_user})
+    return templates.TemplateResponse("category.html",
+                                      {"request": request, "current_category": category, "product": products,
+                                       "user": current_user})
 
-
-@router.post("/add_product", dependencies=[Depends(current_user_has_permission("create_product"))])
-async def create_product(
-        product: ProductCreate,
+@router.post('/create')
+async def create(
+        data: ProductCreate,
         current_user: get_user_manager = Depends(fastapi_users.current_user(active=True, optional=True)),
-        session: AsyncSession = Depends(get_async_session),
+        service: ProductService = Depends(get_product_service)
 ):
-    if current_user:
-        category = await session.execute(select(Category).filter(Category.id == product.category_id))
-        category = category.scalar()
-        if category:
-            stmt = Product(seller_id=current_user.id, **product.dict())
-            session.add(stmt)
-            await session.commit()
-            return stmt
-        else:
-            raise HTTPException(status_code=404, detail="Category not found")
-    else:
-        return {"message": "you not auth"}
+    data.seller_id = current_user.id
+    return await service.create(data)
 
 
-@router.delete("/delete-product/{product_id}", dependencies=[Depends(current_user_has_permission("delete_product"))])
+@router.delete("/delete/{id}")
 async def delete_product(
-        product_id: int,
+        id: int,
         current_user: get_user_manager = Depends(fastapi_users.current_user(active=True, optional=True)),
-        session: AsyncSession = Depends(get_async_session),
+        service: ProductService = Depends(get_product_service),
 ):
-    if current_user:
-        product = await session.execute(select(Product).filter(Product.id == product_id))
-        product = product.scalar()
-        if product is None:
-            raise HTTPException(status_code=404, detail="Product not found")
+    product = await service.get_one(id)
 
-        if current_user.id != product.seller_id:
-            raise HTTPException(status_code=403, detail="Permission denied")
-
-        await session.execute(delete(Product).where(Product.id == product_id))
-        await session.commit()
-
+    if current_user.id == product.seller_id:
+        await service.delete(id)
         return {"status": "success"}
     else:
-        return {"message": "you not auth"}
+        raise HTTPException(status_code=403, detail="Permission denied: You can only delete your own products")
 
 
-@router.post("/buy-product/{product_id}", dependencies=[Depends(current_user_has_permission("buy_product"))])
+@router.post("/buy/{product_id}")
 async def buy_product(
         product_id: int,
         current_user: get_user_manager = Depends(fastapi_users.current_user(active=True, optional=True)),
         session: AsyncSession = Depends(get_async_session)):
-    if current_user:
-        product = await session.execute(select(Product).filter(Product.id == product_id))
-        product = product.scalar()
-        if current_user.id == product.seller_id:
-            raise HTTPException(status_code=404, detail="Seller cannot buy his product")
-        elif not product:
-            raise HTTPException(status_code=404, detail="Products not found")
-        elif product.amount < 1:
-            raise HTTPException(status_code=400, detail="Product is out of stock")
-        else:
-            if current_user.balance >= product.price:
-                order = Order(buyer_id=current_user.id, seller_id=product.seller_id, item_id=product.id)
-                session.add(order)
-                product.amount -= 1
-                current_user.balance -= product.price
-                await session.commit()
-                # return {"message": "Product purchased successfully"}
-                return {"You buy": f"{product.description}"}
-            else:
-                raise HTTPException(status_code=400, detail="Insufficient funds")
+    product = await session.execute(select(Product).filter(Product.id == product_id))
+    product = product.scalar()
+    if not product:
+        raise HTTPException(status_code=404, detail="Products not found")
+    if current_user.id == product.seller_id:
+        raise HTTPException(status_code=404, detail="Seller cannot buy his product")
+    if product.amount < 1:
+        raise HTTPException(status_code=400, detail="Product is out of stock")
     else:
-        return {"message": "you not auth"}
+        if current_user.balance >= product.price:
+            order = Order(buyer_id=current_user.id, seller_id=product.seller_id, item_id=product.id)
+            session.add(order)
+            product.amount -= 1
+            current_user.balance -= product.price
+            await session.commit()
+            return {"You buy": f"{product.description}"}
+        else:
+            raise HTTPException(status_code=400, detail="Insufficient funds")
 
 
-@router.post("/add-review/{product_id}", dependencies=[Depends(current_user_has_permission("add_review"))])
+@router.get("/product-details/{product_id}")
+async def product_details(
+        product_id: int,
+        current_user: get_user_manager = Depends(fastapi_users.current_user(active=True, optional=True)),
+        session: AsyncSession = Depends(get_async_session)
+):
+    product = await session.execute(select(Product).filter(Product.id == product_id))
+    product = product.scalar()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    is_buyer = await session.execute(
+        select(Order).filter(Order.buyer_id == current_user.id, Order.item_id == product.id)
+    )
+    is_buyer = is_buyer.scalar() if current_user else False
+
+    return {
+        "product": product,
+        "user": current_user,
+        "isBuyer": is_buyer
+    }
+
+
+@router.post("/add-review/{product_id}")
 async def add_review(
         product_id: int,
         review_text: str,
@@ -150,8 +154,6 @@ async def get_reviews(
 
     reviews_list = [{"review": review.text, "user": review.user_id} for review in reviews]
     return {"reviews": reviews_list}
-
-
 
 
 @router.get("/search")

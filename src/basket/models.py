@@ -11,6 +11,7 @@ class Basket(Base):
     id = Column(Integer, primary_key=True)
     product_id = Column(Integer, ForeignKey('product.id'), nullable=False)
     user_id = Column(Integer, ForeignKey("user.id"), nullable=False)
+    amount = Column(Integer)
 
     user = relationship("User", foreign_keys=[user_id], lazy="joined")
     product = relationship('Product', foreign_keys=[product_id], back_populates='baskets')
